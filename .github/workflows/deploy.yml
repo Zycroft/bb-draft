@@ -33,5 +33,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           source: "build/web/*"
-          target: ${{ secrets.DEPLOY_PATH }}
+          target: /var/www/html
           strip_components: 2
