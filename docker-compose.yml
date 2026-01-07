@@ -1,0 +1,27 @@
+services:
+  flutter-dev:
+    image: ghcr.io/zycroft/bb-draft-dev:latest
+    # To build locally instead, uncomment below and comment out image:
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: bb_draft_dev
+    volumes:
+      # Mount project directory
+      - .:/workspace
+      # Persist pub cache between sessions
+      - flutter-pub-cache:/home/developer/.pub-cache
+    ports:
+      # Flutter web dev server
+      - "8080:8080"
+      # Alternative port if needed
+      - "5001:5001"
+    stdin_open: true
+    tty: true
+    environment:
+      - CHROME_EXECUTABLE=/usr/bin/google-chrome
+    # Keep container running
+    command: bash
+
+volumes:
+  flutter-pub-cache:
