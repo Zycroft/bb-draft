@@ -59,16 +59,38 @@ jobs:
             docker compose -f docker-compose.prod.yml down || true
             docker compose -f docker-compose.prod.yml up -d --build
 
-            # Configure nginx reverse proxy if not already done
-            if ! grep -q "bb-draft-api" /etc/nginx/sites-available/default 2>/dev/null; then
+            # Check if backend is responding
+            sleep 3
+            curl -s http://127.0.0.1:3000/api/players | head -c 100 || echo "Backend not responding on port 3000"
+
+            # Configure nginx - find the right config file (could be default or domain-specific)
+            NGINX_CONF=$(grep -l "server_name.*zycroft" /etc/nginx/sites-available/* 2>/dev/null | head -1)
+            if [ -z "$NGINX_CONF" ]; then
+              NGINX_CONF="/etc/nginx/sites-available/default"
+            fi
+            echo "Using nginx config: $NGINX_CONF"
+
+            # Check if proxy_pass to 3000 exists (more specific check)
+            if ! grep -q "proxy_pass.*127.0.0.1:3000" "$NGINX_CONF" 2>/dev/null; then
               echo "Configuring nginx reverse proxy..."
               # Copy snippet to nginx snippets dir
+              sudo mkdir -p /etc/nginx/snippets
               sudo cp ~/bb-draft-backend/nginx-api.conf /etc/nginx/snippets/bb-draft-api.conf
-              # Add include to default site config (before the last closing brace)
-              sudo sed -i '/^}$/i\    include snippets/bb-draft-api.conf;' /etc/nginx/sites-available/default
-              # Test and reload nginx
-              sudo nginx -t && sudo systemctl reload nginx
-              echo "Nginx configured successfully"
+
+              # Add include before last closing brace of the SSL server block
+              sudo sed -i '/listen.*443.*ssl/,/^}/{/^}/i\    include snippets/bb-draft-api.conf;' "$NGINX_CONF"
+
+              # Test nginx config
+              if sudo nginx -t; then
+                sudo systemctl reload nginx
+                echo "Nginx configured successfully"
+              else
+                echo "Nginx config test failed - manual fix required"
+                cat /etc/nginx/snippets/bb-draft-api.conf
+              fi
             else
-              echo "Nginx already configured for bb-draft-api"
+              echo "Nginx already configured with proxy to port 3000"
             fi
+
+            # Test the proxy
+            curl -s https://zycroft.duckdns.org/bb-draft-api/api/players | head -c 100 || echo "Proxy test failed"
