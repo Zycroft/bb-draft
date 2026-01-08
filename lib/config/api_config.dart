@@ -1,6 +1,18 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 class ApiConfig {
-  // Change this to your backend URL
-  static const String baseUrl = 'http://localhost:3000';
+  static String get baseUrl {
+    if (kIsWeb) {
+      final uri = Uri.base;
+      if (uri.host.contains('zycroft.duckdns.org')) {
+        // Production - API proxied through nginx at /bb-draft-api
+        return 'https://zycroft.duckdns.org/bb-draft-api';
+      }
+    }
+    // Development fallback
+    return 'http://localhost:3000';
+  }
+
   static const String apiPath = '/api';
 
   static String get apiUrl => '$baseUrl$apiPath';

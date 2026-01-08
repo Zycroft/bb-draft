@@ -23,15 +23,44 @@ jobs:
         run: flutter pub get
 
       - name: Build web app
-        run: flutter build web --release --base-href /
+        run: flutter build web --release --base-href /bb-draft/
 
-      - name: Deploy to server
+      - name: Deploy Flutter app to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: 172.251.19.6
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
+          port: ${{ secrets.SSH_PORT }}
           source: "build/web/*"
           target: /var/www/html/bb-draft
           strip_components: 2
+
+      - name: Deploy backend to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 172.251.19.6
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "bb-draft-backend/*"
+          target: /opt/bb-draft-backend
+          strip_components: 1
+
+      - name: Build and restart backend
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 172.251.19.6
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /opt/bb-draft-backend
+            docker compose -f docker-compose.prod.yml down || true
+            docker compose -f docker-compose.prod.yml up -d --build
+
+            # Configure nginx reverse proxy if not already done
+            if ! grep -q "bb-draft-api" /etc/nginx/sites-available/default 2>/dev/null; then
+              echo "Note: Add the following to your nginx config manually:"
+              cat /opt/bb-draft-backend/nginx-api.conf
+            fi
