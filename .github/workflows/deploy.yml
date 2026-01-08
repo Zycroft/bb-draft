@@ -63,7 +63,16 @@ jobs:
             NGINX_CONF=$(grep -l "server_name.*zycroft" /etc/nginx/sites-available/* 2>/dev/null | head -1)
             if [ -z "$NGINX_CONF" ]; then NGINX_CONF="/etc/nginx/sites-available/default"; fi
             echo "Using nginx config: $NGINX_CONF"
-            if ! grep -q "proxy_pass.*127.0.0.1:3000" "$NGINX_CONF" 2>/dev/null; then
+            # Force reconfigure by restoring backup first if proxy test fails
+            if curl -s --max-time 5 https://zycroft.duckdns.org/bb-draft-api/api/players | head -c 50 | grep -q items; then
+              echo "Proxy already working"
+            else
+              echo "Proxy not working, reconfiguring..."
+              # Restore backup if exists
+              if [ -f "${NGINX_CONF}.bak" ]; then
+                echo "Restoring backup..."
+                sudo cp "${NGINX_CONF}.bak" "$NGINX_CONF"
+              fi
               echo "Configuring nginx..."
               sudo cp "$NGINX_CONF" "${NGINX_CONF}.bak"
               LAST_BRACE=$(grep -n "^}" "$NGINX_CONF" | tail -1 | cut -d: -f1)
@@ -92,7 +101,5 @@ jobs:
                 echo "Nginx config test failed - restoring backup"
                 sudo mv "${NGINX_CONF}.bak" "$NGINX_CONF"
               fi
-            else
-              echo "Nginx already configured"
             fi
             curl -s https://zycroft.duckdns.org/bb-draft-api/api/players | head -c 100 || echo "Proxy test failed"
