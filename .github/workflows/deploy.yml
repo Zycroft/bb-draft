@@ -75,7 +75,12 @@ jobs:
               fi
               echo "Configuring nginx..."
               sudo cp "$NGINX_CONF" "${NGINX_CONF}.bak"
-              LAST_BRACE=$(grep -n "^}" "$NGINX_CONF" | tail -1 | cut -d: -f1)
+              # Find the line with "listen 443 ssl" to identify HTTPS server block
+              SSL_LINE=$(grep -n "listen.*443.*ssl" "$NGINX_CONF" | head -1 | cut -d: -f1)
+              echo "SSL server starts at line $SSL_LINE"
+              # Find the closing brace of the HTTPS server block (first } after ssl line)
+              LAST_BRACE=$(tail -n +$SSL_LINE "$NGINX_CONF" | grep -n "^}" | head -1 | cut -d: -f1)
+              LAST_BRACE=$((SSL_LINE + LAST_BRACE - 1))
               echo "Inserting before line $LAST_BRACE"
               sudo head -n $((LAST_BRACE - 1)) "$NGINX_CONF" | sudo tee "${NGINX_CONF}.new" > /dev/null
               echo "" | sudo tee -a "${NGINX_CONF}.new" > /dev/null
@@ -94,12 +99,20 @@ jobs:
               echo "" | sudo tee -a "${NGINX_CONF}.new" > /dev/null
               sudo tail -n +$LAST_BRACE "$NGINX_CONF" | sudo tee -a "${NGINX_CONF}.new" > /dev/null
               sudo mv "${NGINX_CONF}.new" "$NGINX_CONF"
+              echo "=== New config around insertion point ==="
+              sed -n "$((LAST_BRACE - 5)),$((LAST_BRACE + 20))p" "$NGINX_CONF"
+              echo "=== End config preview ==="
               if sudo nginx -t; then
                 sudo systemctl reload nginx
                 echo "Nginx configured successfully"
+                sleep 2
+                echo "Testing proxy directly..."
+                curl -s http://127.0.0.1:3000/api/players | head -c 50
+                echo ""
               else
                 echo "Nginx config test failed - restoring backup"
                 sudo mv "${NGINX_CONF}.bak" "$NGINX_CONF"
+                sudo nginx -t
               fi
             fi
             curl -s https://zycroft.duckdns.org/bb-draft-api/api/players | head -c 100 || echo "Proxy test failed"
