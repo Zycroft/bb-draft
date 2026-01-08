@@ -58,64 +58,41 @@ jobs:
             cd ~/bb-draft-backend
             docker compose -f docker-compose.prod.yml down || true
             docker compose -f docker-compose.prod.yml up -d --build
-
-            # Check if backend is responding
             sleep 3
-            curl -s http://127.0.0.1:3000/api/players | head -c 100 || echo "Backend not responding on port 3000"
-
-            # Configure nginx - find the right config file (could be default or domain-specific)
+            curl -s http://127.0.0.1:3000/api/players | head -c 100 || echo "Backend not responding"
             NGINX_CONF=$(grep -l "server_name.*zycroft" /etc/nginx/sites-available/* 2>/dev/null | head -1)
-            if [ -z "$NGINX_CONF" ]; then
-              NGINX_CONF="/etc/nginx/sites-available/default"
-            fi
+            if [ -z "$NGINX_CONF" ]; then NGINX_CONF="/etc/nginx/sites-available/default"; fi
             echo "Using nginx config: $NGINX_CONF"
-
-            # Check if proxy_pass to 3000 exists (more specific check)
             if ! grep -q "proxy_pass.*127.0.0.1:3000" "$NGINX_CONF" 2>/dev/null; then
-              echo "Configuring nginx reverse proxy..."
-
-              # Create a backup
+              echo "Configuring nginx..."
               sudo cp "$NGINX_CONF" "${NGINX_CONF}.bak"
-
-              # Insert location block before the final closing brace
-              # First, find the line number of the last } in the file
               LAST_BRACE=$(grep -n "^}" "$NGINX_CONF" | tail -1 | cut -d: -f1)
               echo "Inserting before line $LAST_BRACE"
-
-              # Insert the location block before that line
-              sudo head -n $((LAST_BRACE - 1)) "$NGINX_CONF" > "${NGINX_CONF}.new"
-              cat << 'LOCATION_BLOCK' | sudo tee -a "${NGINX_CONF}.new" > /dev/null
-
-    # BB Draft API proxy
-    location /bb-draft-api/ {
-        proxy_pass http://127.0.0.1:3000/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 86400;
-    }
-
-LOCATION_BLOCK
+              sudo head -n $((LAST_BRACE - 1)) "$NGINX_CONF" | sudo tee "${NGINX_CONF}.new" > /dev/null
+              echo "" | sudo tee -a "${NGINX_CONF}.new" > /dev/null
+              echo "    # BB Draft API proxy" | sudo tee -a "${NGINX_CONF}.new" > /dev/null
+              echo "    location /bb-draft-api/ {" | sudo tee -a "${NGINX_CONF}.new" > /dev/null
+              echo "        proxy_pass http://127.0.0.1:3000/;" | sudo tee -a "${NGINX_CONF}.new" > /dev/null
+              echo "        proxy_http_version 1.1;" | sudo tee -a "${NGINX_CONF}.new" > /dev/null
+              echo '        proxy_set_header Upgrade $http_upgrade;' | sudo tee -a "${NGINX_CONF}.new" > /dev/null
+              echo '        proxy_set_header Connection "upgrade";' | sudo tee -a "${NGINX_CONF}.new" > /dev/null
+              echo '        proxy_set_header Host $host;' | sudo tee -a "${NGINX_CONF}.new" > /dev/null
+              echo '        proxy_set_header X-Real-IP $remote_addr;' | sudo tee -a "${NGINX_CONF}.new" > /dev/null
+              echo '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;' | sudo tee -a "${NGINX_CONF}.new" > /dev/null
+              echo '        proxy_set_header X-Forwarded-Proto $scheme;' | sudo tee -a "${NGINX_CONF}.new" > /dev/null
+              echo "        proxy_read_timeout 86400;" | sudo tee -a "${NGINX_CONF}.new" > /dev/null
+              echo "    }" | sudo tee -a "${NGINX_CONF}.new" > /dev/null
+              echo "" | sudo tee -a "${NGINX_CONF}.new" > /dev/null
               sudo tail -n +$LAST_BRACE "$NGINX_CONF" | sudo tee -a "${NGINX_CONF}.new" > /dev/null
-
               sudo mv "${NGINX_CONF}.new" "$NGINX_CONF"
-
-              # Test nginx config
               if sudo nginx -t; then
                 sudo systemctl reload nginx
                 echo "Nginx configured successfully"
               else
                 echo "Nginx config test failed - restoring backup"
                 sudo mv "${NGINX_CONF}.bak" "$NGINX_CONF"
-                sudo nginx -t && sudo systemctl reload nginx
               fi
             else
-              echo "Nginx already configured with proxy to port 3000"
+              echo "Nginx already configured"
             fi
-
-            # Test the proxy
             curl -s https://zycroft.duckdns.org/bb-draft-api/api/players | head -c 100 || echo "Proxy test failed"
