@@ -61,6 +61,14 @@ jobs:
 
             # Configure nginx reverse proxy if not already done
             if ! grep -q "bb-draft-api" /etc/nginx/sites-available/default 2>/dev/null; then
-              echo "Note: Add the following to your nginx config manually:"
-              cat ~/bb-draft-backend/nginx-api.conf
+              echo "Configuring nginx reverse proxy..."
+              # Copy snippet to nginx snippets dir
+              sudo cp ~/bb-draft-backend/nginx-api.conf /etc/nginx/snippets/bb-draft-api.conf
+              # Add include to default site config (before the last closing brace)
+              sudo sed -i '/^}$/i\    include snippets/bb-draft-api.conf;' /etc/nginx/sites-available/default
+              # Test and reload nginx
+              sudo nginx -t && sudo systemctl reload nginx
+              echo "Nginx configured successfully"
+            else
+              echo "Nginx already configured for bb-draft-api"
             fi
