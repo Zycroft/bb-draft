@@ -8,6 +8,7 @@ import { initializeFirebase } from './config/firebase';
 import { initializeDynamoDB } from './config/database';
 
 // Routes
+import healthRoutes from './routes/health';
 import userRoutes from './routes/users';
 
 dotenv.config();
@@ -23,10 +24,8 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+// Health routes
+app.use('/health', healthRoutes);
 
 // API Routes
 app.use('/api/users', userRoutes);
