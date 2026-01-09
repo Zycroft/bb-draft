@@ -36,6 +36,18 @@ jobs:
           target: /var/www/html/bb-draft
           strip_components: 2
 
+      - name: Clean backend directory on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 172.251.19.6
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            rm -rf ~/bb-draft-backend/src
+            rm -rf ~/bb-draft-backend/dist
+            echo "Cleaned backend src and dist directories"
+
       - name: Deploy backend to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -59,12 +71,12 @@ jobs:
             docker compose -f docker-compose.prod.yml down || true
             docker compose -f docker-compose.prod.yml up -d --build
             sleep 3
-            curl -s http://127.0.0.1:3000/api/players | head -c 100 || echo "Backend not responding"
+            curl -s http://127.0.0.1:3000/health || echo "Backend not responding"
             NGINX_CONF=$(grep -l "server_name.*zycroft" /etc/nginx/sites-available/* 2>/dev/null | head -1)
             if [ -z "$NGINX_CONF" ]; then NGINX_CONF="/etc/nginx/sites-available/default"; fi
             echo "Using nginx config: $NGINX_CONF"
             # Force reconfigure by restoring backup first if proxy test fails
-            if curl -s --max-time 5 https://zycroft.duckdns.org/bb-draft-api/api/players | head -c 50 | grep -q items; then
+            if curl -s --max-time 5 https://zycroft.duckdns.org/bb-draft-api/health | grep -q ok; then
               echo "Proxy already working"
             else
               echo "Proxy not working, reconfiguring..."
@@ -107,7 +119,7 @@ jobs:
                 echo "Nginx configured successfully"
                 sleep 2
                 echo "Testing proxy directly..."
-                curl -s http://127.0.0.1:3000/api/players | head -c 50
+                curl -s http://127.0.0.1:3000/health
                 echo ""
               else
                 echo "Nginx config test failed - restoring backup"
@@ -115,4 +127,4 @@ jobs:
                 sudo nginx -t
               fi
             fi
-            curl -s https://zycroft.duckdns.org/bb-draft-api/api/players | head -c 100 || echo "Proxy test failed"
+            curl -s https://zycroft.duckdns.org/bb-draft-api/health || echo "Proxy test failed"
