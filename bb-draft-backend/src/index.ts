@@ -18,8 +18,24 @@ const httpServer = createServer(app);
 
 // Middleware
 app.use(helmet());
+
+// CORS configuration - allow production and localhost for development
+const allowedOrigins = [
+  'https://zycroft.duckdns.org',
+  'http://localhost:8080',
+  'http://localhost:8081',
+  'http://127.0.0.1:8080',
+  'http://127.0.0.1:8081',
+];
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  },
   credentials: true,
 }));
 app.use(express.json());
