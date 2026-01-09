@@ -218,13 +218,44 @@ Table: table_name
 
 **Checkpoint 3:** [What should be true before proceeding]
 
-#### Phase 4: Testing & Cleanup
+#### Phase 4: Implement Test Specification
+
+> **Agent Instructions:** Implement ALL tests defined in Section 8 (Test Specification). Tests are required, not optional. Do not skip this phase.
 
 | Step | Action | Files | Verification |
 |------|--------|-------|--------------|
-| 4.1 | Add unit tests | `file.test.ts` | Tests pass |
-| 4.2 | Run linter | — | No errors |
-| 4.3 | Update docs if needed | `README.md` | Accurate |
+| 4.1 | Create test file(s) for new functionality | `path/to/feature.test.ts` | File exists |
+| 4.2 | Implement tests from Test Matrix (Section 8) | `path/to/feature.test.ts` | All scenarios covered |
+| 4.3 | Implement happy path tests | `path/to/feature.test.ts` | Tests pass |
+| 4.4 | Implement error/edge case tests | `path/to/feature.test.ts` | Tests pass |
+| 4.5 | Run all tests and verify pass | — | `npm run test` exits 0 |
+| 4.6 | Verify coverage meets requirements | — | Coverage >= target |
+
+**Checkpoint 4:** All tests from Test Specification implemented and passing
+
+#### Phase 5: Validation & Cleanup
+
+| Step | Action | Files | Verification |
+|------|--------|-------|--------------|
+| 5.1 | Run linter | — | No errors |
+| 5.2 | Run type checker | — | No errors |
+| 5.3 | Update docs if needed | `README.md` | Accurate |
+| 5.4 | Manual smoke test | — | Feature works as expected |
+
+#### Phase 6: Final Validation
+
+> **Agent Instructions:** Execute the complete Validation Protocol (Section 7) before marking the task complete. All checks must pass.
+
+| Step | Action | Verification |
+|------|--------|--------------|
+| 6.1 | Execute Build & Lint commands from Section 7 | All commands exit 0 |
+| 6.2 | Execute Test Execution commands from Section 7 | All tests pass |
+| 6.3 | Complete Smoke Test Checklist from Section 7 | All checks pass |
+| 6.4 | Capture Evidence listed in Section 7 | Evidence documented |
+| 6.5 | Verify all Success Criteria (Section 2) are met | All SC items checked |
+| 6.6 | Verify all Acceptance Criteria (Section 4) pass | All AC scenarios pass |
+
+**Checkpoint 6:** Feature complete, all tests pass, all validations pass
 
 #### Decision Points
 
@@ -383,8 +414,11 @@ git revert <commit-sha>
    ```
    ## Status
    - [x] All requirements implemented
-   - [x] All tests pass
+   - [x] All tests from Test Specification implemented
+   - [x] All tests pass (X tests)
    - [x] Linting passes
+   - [x] All Success Criteria verified
+   - [x] All Acceptance Criteria pass
    - [ ] Known limitation: [if any]
    ```
 
@@ -440,6 +474,7 @@ try {
 3. Include actual file paths, not placeholders
 4. Provide code examples from the actual codebase
 5. Specify exact commands with expected outputs
+6. Define complete Test Matrix in Section 8 — these WILL be implemented
 
 **For AI Agents:**
 
@@ -447,4 +482,8 @@ try {
 2. Execute steps in order unless dependencies allow parallelization
 3. Stop at checkpoints and verify before continuing
 4. If blocked, report what's blocking and ask for guidance
-5. Always provide the required outputs at completion
+5. **REQUIRED:** Implement ALL tests from Section 8 (Test Specification)
+6. **REQUIRED:** Execute Phase 6 (Final Validation) before marking complete
+7. Do not skip test implementation — tests are mandatory, not optional
+8. Always provide the required outputs at completion
+9. Verify ALL Success Criteria and Acceptance Criteria before completing
