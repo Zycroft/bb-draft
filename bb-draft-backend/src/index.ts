@@ -2,32 +2,18 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 
 import { initializeFirebase } from './config/firebase';
-import { initializeDynamoDB, createTables } from './config/database';
-import { initializeSocket } from './socket';
+import { initializeDynamoDB } from './config/database';
 
 // Routes
 import userRoutes from './routes/users';
-import playerRoutes from './routes/players';
-import leagueRoutes from './routes/leagues';
-import teamRoutes from './routes/teams';
-import draftRoutes from './routes/drafts';
-import tradeRoutes from './routes/trades';
-import encyclopediaRoutes from './routes/encyclopedia';
 
 dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: process.env.CORS_ORIGIN || '*',
-    methods: ['GET', 'POST'],
-  },
-});
 
 // Middleware
 app.use(helmet());
@@ -44,12 +30,6 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/users', userRoutes);
-app.use('/api/players', playerRoutes);
-app.use('/api/leagues', leagueRoutes);
-app.use('/api/teams', teamRoutes);
-app.use('/api/drafts', draftRoutes);
-app.use('/api/trades', tradeRoutes);
-app.use('/api/encyclopedia', encyclopediaRoutes);
 
 // Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -68,19 +48,6 @@ async function start() {
     await initializeDynamoDB();
     console.log('DynamoDB connected');
 
-    // Create tables if they don't exist (non-blocking)
-    try {
-      await createTables();
-      console.log('DynamoDB tables ready');
-    } catch (tableError) {
-      console.warn('Warning: Could not create tables:', (tableError as Error).message);
-      console.log('Continuing without table creation...');
-    }
-
-    // Initialize Socket.io
-    initializeSocket(io);
-    console.log('Socket.io initialized');
-
     const PORT = process.env.PORT || 3000;
     httpServer.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
@@ -92,5 +59,3 @@ async function start() {
 }
 
 start();
-
-export { io };

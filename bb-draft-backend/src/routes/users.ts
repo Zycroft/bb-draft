@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../middleware/auth';
 import * as UserModel from '../models/User';
-import * as TeamModel from '../models/Team';
 
 const router = Router();
 
@@ -55,17 +54,6 @@ router.put('/me', authMiddleware, async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Error updating user:', error);
     res.status(500).json({ error: 'Failed to update user', message: error.message });
-  }
-});
-
-// Get user's teams
-router.get('/me/teams', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const teams = await TeamModel.getTeamsByOwner(req.user!.uid);
-    res.json(teams);
-  } catch (error: any) {
-    console.error('Error getting teams:', error);
-    res.status(500).json({ error: 'Failed to get teams', message: error.message });
   }
 });
 

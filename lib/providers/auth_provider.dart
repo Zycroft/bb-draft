@@ -1,12 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final ApiService _api = ApiService();
 
   User? _user;
   bool _isLoading = false;
@@ -20,23 +18,8 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider() {
     _auth.authStateChanges().listen((user) {
       _user = user;
-      if (user != null) {
-        _syncUserToBackend();
-      }
       notifyListeners();
     });
-  }
-
-  Future<void> _syncUserToBackend() async {
-    try {
-      await _api.post('/users/sync', {
-        'displayName': _user?.displayName,
-        'photoUrl': _user?.photoURL,
-      });
-    } catch (e) {
-      // Silently fail - backend might not be available
-      debugPrint('Failed to sync user to backend: $e');
-    }
   }
 
   Future<bool> signInWithEmail(String email, String password) async {
@@ -157,11 +140,5 @@ class AuthProvider extends ChangeNotifier {
       default:
         return 'Authentication failed: $code';
     }
-  }
-
-  @override
-  void dispose() {
-    _api.dispose();
-    super.dispose();
   }
 }
