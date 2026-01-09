@@ -374,13 +374,46 @@ After league participation, users are routed to role-specific features:
 
 **Checkpoint 3:** User can tap leave, confirm, and be removed from league
 
-#### Phase 4: Testing & Cleanup
+#### Phase 4: Implement Test Specification
+
+> **Agent Instructions:** Implement ALL tests defined in Section 8 (Test Specification). Tests are required, not optional. Do not skip this phase.
 
 | Step | Action | Files | Verification |
 |------|--------|-------|--------------|
-| 4.1 | Add unit tests for leave endpoint | `src/routes/leagues.test.ts` | Tests pass |
-| 4.2 | Test edge cases (draft active, commissioner) | `src/routes/leagues.test.ts` | Tests pass |
-| 4.3 | Run linter | — | No errors |
+| 4.1 | Create test file for leave endpoint | `src/routes/leagues.test.ts` | File exists |
+| 4.2 | Implement "Leave league success" test | `src/routes/leagues.test.ts` | Test passes |
+| 4.3 | Implement "Leave as commissioner" test | `src/routes/leagues.test.ts` | Test passes |
+| 4.4 | Implement "Leave during draft" test | `src/routes/leagues.test.ts` | Test passes |
+| 4.5 | Implement "Leave non-member" test | `src/routes/leagues.test.ts` | Test passes |
+| 4.6 | Implement "Leave nonexistent league" test | `src/routes/leagues.test.ts` | Test passes |
+| 4.7 | Implement "List leagues with roles" test | `src/routes/leagues.test.ts` | Test passes |
+| 4.8 | Add Flutter widget tests for leave UI | `test/screens/league_detail_test.dart` | Tests pass |
+| 4.9 | Run all tests and verify pass | — | `npm test` and `flutter test` exit 0 |
+
+**Checkpoint 4:** All tests from Test Specification implemented and passing
+
+#### Phase 5: Validation & Cleanup
+
+| Step | Action | Files | Verification |
+|------|--------|-------|--------------|
+| 5.1 | Run backend linter | — | No errors |
+| 5.2 | Run flutter analyze | — | No errors |
+| 5.3 | Manual smoke test of leave functionality | — | Feature works as expected |
+
+#### Phase 6: Final Validation
+
+> **Agent Instructions:** Execute the complete Validation Protocol (Section 7) before marking the task complete. All checks must pass.
+
+| Step | Action | Verification |
+|------|--------|--------------|
+| 6.1 | Execute Build & Lint commands from Section 7 | All commands exit 0 |
+| 6.2 | Execute Test Execution commands from Section 7 | All tests pass |
+| 6.3 | Complete Smoke Test Checklist from Section 7 | All checks pass |
+| 6.4 | Capture Evidence listed in Section 7 | Evidence documented |
+| 6.5 | Verify all Success Criteria (Section 2) are met | All SC items checked |
+| 6.6 | Verify all Acceptance Criteria (Section 4) pass | All AC scenarios pass |
+
+**Checkpoint 6:** Feature complete, all tests pass, all validations pass
 
 #### Decision Points
 

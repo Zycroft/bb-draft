@@ -359,14 +359,44 @@ No schema changes required
 
 **Checkpoint 5:** App shows status bar on home screen with live status from zycroft.duckdns.org when showDevStatusIndicators is true; status bar hidden when false
 
-#### Phase 6: Testing & Cleanup
+#### Phase 6: Implement Test Specification
+
+> **Agent Instructions:** Implement ALL tests defined in Section 8 (Test Specification). Tests are required, not optional. Do not skip this phase.
 
 | Step | Action | Files | Verification |
 |------|--------|-------|--------------|
-| 6.1 | Test with backend running at zycroft.duckdns.org | — | Both icons green |
-| 6.2 | Test with incorrect URL | — | Both icons red |
-| 6.3 | Run flutter analyze | — | No errors |
-| 6.4 | Verify auto-refresh works | — | Icons update after 30 seconds |
+| 6.1 | Create test directory structure | `test/widgets/` | Directory exists |
+| 6.2 | Implement StatusIndicator tests from Test Matrix | `test/widgets/status_indicator_test.dart` | All scenarios covered |
+| 6.3 | Implement StatusBar tests from Test Matrix | `test/widgets/status_bar_test.dart` | All scenarios covered |
+| 6.4 | Run all tests and verify pass | — | `flutter test` exits 0 |
+| 6.5 | Verify coverage meets requirements (70%+ for widgets) | — | Coverage >= target |
+
+**Checkpoint 6:** All tests from Test Specification implemented and passing
+
+#### Phase 7: Validation & Cleanup
+
+| Step | Action | Files | Verification |
+|------|--------|-------|--------------|
+| 7.1 | Run flutter analyze | — | No errors |
+| 7.2 | Run backend build | — | No errors |
+| 7.3 | Test with backend running at zycroft.duckdns.org | — | Both icons green |
+| 7.4 | Test with incorrect URL | — | Both icons red |
+| 7.5 | Verify auto-refresh works | — | Icons update after 30 seconds |
+
+#### Phase 8: Final Validation
+
+> **Agent Instructions:** Execute the complete Validation Protocol (Section 7) before marking the task complete. All checks must pass.
+
+| Step | Action | Verification |
+|------|--------|--------------|
+| 8.1 | Execute Build & Lint commands from Section 7 | All commands exit 0 |
+| 8.2 | Execute Test Execution commands from Section 7 | All tests pass |
+| 8.3 | Complete Smoke Test Checklist from Section 7 | All checks pass |
+| 8.4 | Capture Evidence listed in Section 7 | Evidence documented |
+| 8.5 | Verify all Success Criteria (Section 2) are met | All SC items checked |
+| 8.6 | Verify all Acceptance Criteria (Section 4) pass | All AC scenarios pass |
+
+**Checkpoint 8:** Feature complete, all tests pass, all validations pass
 
 #### Decision Points
 
