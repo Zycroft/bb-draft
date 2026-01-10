@@ -76,7 +76,7 @@ void main() {
       expect(decoration.color, const Color(0xFF1E1E1E));
     });
 
-    testWidgets('indicators are centered in row', (tester) async {
+    testWidgets('displays version number in bottom right', (tester) async {
       await tester.pumpWidget(
         ChangeNotifierProvider(
           create: (_) => StatusProvider(),
@@ -88,13 +88,65 @@ void main() {
         ),
       );
 
-      // Find the Row that is a direct child of the StatusBar's Container
-      final rows = tester.widgetList<Row>(find.byType(Row));
-      final centeredRow = rows.firstWhere(
-        (row) => row.mainAxisAlignment == MainAxisAlignment.center,
-        orElse: () => throw StateError('No centered row found'),
+      // Version text should be present (default is 'dev' in tests)
+      expect(find.text('dev'), findsOneWidget);
+    });
+
+    testWidgets('version text is right-aligned', (tester) async {
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => StatusProvider(),
+          child: const MaterialApp(
+            home: Scaffold(
+              body: StatusBar(),
+            ),
+          ),
+        ),
       );
-      expect(centeredRow.mainAxisAlignment, MainAxisAlignment.center);
+
+      // Find the Align widget containing the version text
+      final align = tester.widget<Align>(
+        find.ancestor(
+          of: find.text('dev'),
+          matching: find.byType(Align),
+        ).first,
+      );
+
+      expect(align.alignment, Alignment.centerRight);
+    });
+
+    testWidgets('uses three-column layout with Expanded widgets', (tester) async {
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => StatusProvider(),
+          child: const MaterialApp(
+            home: Scaffold(
+              body: StatusBar(),
+            ),
+          ),
+        ),
+      );
+
+      // Should have two Expanded widgets (left spacer and right with version)
+      expect(find.byType(Expanded), findsNWidgets(2));
+    });
+
+    testWidgets('version text has correct styling', (tester) async {
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => StatusProvider(),
+          child: const MaterialApp(
+            home: Scaffold(
+              body: StatusBar(),
+            ),
+          ),
+        ),
+      );
+
+      final textWidget = tester.widget<Text>(find.text('dev'));
+      expect(textWidget.style?.fontSize, 11);
+      expect(textWidget.style?.color, const Color(0xFF666666));
+      expect(textWidget.style?.fontFamily, 'monospace');
     });
   });
 }

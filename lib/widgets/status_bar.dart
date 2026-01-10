@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/app_config.dart';
 import '../providers/status_provider.dart';
 import 'status_indicator.dart';
 
@@ -24,8 +25,10 @@ class StatusBar extends StatelessWidget {
             ),
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Empty spacer to balance the version on the right
+              const Expanded(child: SizedBox()),
+              // Centered status indicators
               StatusIndicator(
                 label: 'Backend',
                 icon: Icons.cloud,
@@ -36,6 +39,20 @@ class StatusBar extends StatelessWidget {
                 label: 'Database',
                 icon: Icons.storage,
                 status: statusProvider.dbStatus,
+              ),
+              // Version number on the right
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    AppConfig.appVersion,
+                    style: const TextStyle(
+                      color: Color(0xFF666666),
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

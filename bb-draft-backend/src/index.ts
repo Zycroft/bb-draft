@@ -10,6 +10,7 @@ import { initializeDynamoDB } from './config/database';
 // Routes
 import healthRoutes from './routes/health';
 import userRoutes from './routes/users';
+import versionRoutes from './routes/version';
 
 dotenv.config();
 
@@ -42,6 +43,9 @@ app.use(express.json());
 
 // Health routes
 app.use('/health', healthRoutes);
+
+// Version routes
+app.use('/version', versionRoutes);
 
 // API Routes
 app.use('/api/users', userRoutes);

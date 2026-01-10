@@ -35,6 +35,7 @@ export { docClient };
 // Table names
 export const TABLES = {
   USERS: 'bb_draft_users',
+  VERSIONS: 'bb_draft_versions',
 };
 
 // Alias for backward compatibility

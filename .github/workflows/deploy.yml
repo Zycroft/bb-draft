@@ -22,8 +22,25 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Get next version from backend
+        id: version
+        run: |
+          # Get the next version number from the production backend
+          VERSION_RESPONSE=$(curl -s -X POST https://zycroft.duckdns.org/bb-draft-api/version/next \
+            -H "Content-Type: application/json" \
+            -d '{"majorMinorPatch": "0.0.0"}' || echo '{"version": "0.0.0-unknown-0000"}')
+
+          VERSION=$(echo "$VERSION_RESPONSE" | grep -o '"version":"[^"]*"' | cut -d'"' -f4)
+
+          if [ -z "$VERSION" ]; then
+            VERSION="0.0.0-unknown-0000"
+          fi
+
+          echo "Generated version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Build web app
-        run: flutter build web --release --base-href /bb-draft/
+        run: flutter build web --release --base-href /bb-draft/ --dart-define=APP_VERSION=${{ steps.version.outputs.version }}
 
       - name: Deploy Flutter app to server
         uses: appleboy/scp-action@v0.1.7
